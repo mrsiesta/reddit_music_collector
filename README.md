@@ -15,6 +15,9 @@ Configuration
 =============
 
 * Install requirements:
+- Python3 Interpreter should be installed on your system
+```pip3 install pip-tools```
+```pip-compile requirements.in```
 ```pip3 install -r requirements.txt```
 
 * [Create a reddit application for your user](https://www.reddit.com/prefs/apps/)
@@ -52,8 +55,8 @@ short_url=https://redd.it
 timeout=16
 
 # Login details
-client_id=Y4PJOclpDQy3xZ
-client_secret=UkGLTe6oqsMk5nHCJTHLrwgvHpr
-password=pni9ubeht4wd50gk
-username=fakebot1
+client_id=<YourClientID Given after creating your reddit application>
+client_secret=<clientSecret>
+password=<the password for the user the reddit app was created with>
+username=<the username your reddit app was created with>
 ```

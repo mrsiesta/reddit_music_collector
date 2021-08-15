@@ -26,6 +26,10 @@ class YoutubeDL:
             signal.alarm(60)
             _id, _subreddit, title, artist, track_name, rank, ts, url, download = row
 
+            if rank < 1:
+                self.db_conn.mark_track_downloaded(_id)
+                continue
+
             print(f"Attempting to download [{title}]")
             try:
                 youtube_data = self.download_and_extract_audio(url)
@@ -37,10 +41,10 @@ class YoutubeDL:
                     continue
 
                 # Anything over 15 minutes is likely not a single track, discard anything longer than 15 minutes
-                track_length = youtube_data.get('duration')
+                track_length = youtube_data.get('duration', 0)
                 mp3_path = self.search_log_data_for_mp3_path()
-                if track_length > 900:
-                    print(f"Track exceeds duration threshold, deleting file [{mp3_path}]")
+                if track_length > 900 or track_length < 120:
+                    print(f"Track duration [{track_length}] is outside of allowed duration, deleting file [{mp3_path}]")
                     Path(mp3_path).unlink(missing_ok=True)
                     print('-' * 80 + '\n')
                     continue
@@ -71,7 +75,8 @@ class YoutubeDL:
     def fetch_youtube_metadata(self, url):
         pass
 
-    def move_newly_downloaded(self, mp3_file, dest_dir):
+    @staticmethod
+    def move_newly_downloaded(mp3_file, dest_dir):
         if Path(dest_dir).exists() and not Path(dest_dir).is_dir():
             raise RuntimeError(f"Destination path [{dest_dir}] is not a directory")
         if not Path(mp3_file).is_file():
