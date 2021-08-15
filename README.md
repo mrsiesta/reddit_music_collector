@@ -87,3 +87,21 @@ optional arguments:
 
 * Check for any new submissions found on `/r/house` and download identified youtube content
 > ./reddit_selector.py --subreddit=house --dest ~/Music/reddit_selections
+```
+reddit_music_collector git:(main) ./reddit_selector.py --subreddit=house -d ~/Music/reddit_selections
+Found 112 new youtube tracks on r/house!
+Updating content table with new tracks
+Done inserting new data
+Found 112 tracks that need to be downloaded!
+
+Attempting to download [Efraim Leo - Somebody Else/6AM Remix]
+Done downloading, now converting ...
+Successfully downloaded Efraim Leo - Somebody Else/6AM Remix
+Moving [Efraim Leo - Somebody Else (Lyrics) 6AM Remix.mp3] to /Users/siesta/Music/reddit_selections/House
+--------------------------------------------------------------------------------
+
+Attempting to download [Griffter - In My Soul]
+Done downloading, now converting ...
+Successfully downloaded Griffter - In My Soul
+Moving [In My Soul (Lyric Video).mp3] to /Users/siesta/Music/reddit_selections/House
+```
