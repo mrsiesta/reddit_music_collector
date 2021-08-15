@@ -1,22 +1,13 @@
+#!/usr/bin/env python3
+
+import argparse
+import sys
+
+from pathlib import Path
+
 from lib.reddit import Redditor
 from lib.db_helper import sqliteHelper
-from __future__ import unicode_literals
-import youtube_dl
-
-
-def get_latest(db_conn, channel):
-    latest_youtube_content = [s for s in channel.new() if s.domain == 'youtube.com']
-    return filter_latest(db_conn, latest_youtube_content)
-
-
-def filter_latest(db_conn, submission_list):
-    checked_list = []
-    # For each item in list; check if submission id in database
-    for sub in submission_list:
-        if not db_conn.check_database_for_id(sub.id):
-            checked_list.append(sub)
-
-    return checked_list
+from lib.youtube_helper import YoutubeDL
 
 
 def get_r_house_tracks_from_weekly(channel):
@@ -44,84 +35,36 @@ def get_r_house_tracks_from_weekly(channel):
     return ordered_tracks
 
 
-def fetch_undownloaded(db_conn, dest_path):
-    db_conn.cursor.execute("select * from content where downloaded == false")
-    data = db_conn.cursor.fetchall()
-    print(f"Found {len(data)} tracks that need to be downloaded!\n")
-    for row in data:
-        print(f"DEBUG: Row data:\n[{row}]\n")
-        _id, title, rank, ts, url, download = row
-
-        # TODO extend database information to include artist and song title
-        youtube_media_metadata = fetch_youtube_metadata(url)
-        artist, song_title = parse_youtube_metadata(youtube_media_metadata)
-        db_conn.update_db_with_track_data(_id, artist, song_title)
-
-        print(f"Attempting to download {title}")
-        mp3_path = download_youtube_track(url)
-        if mp3_path:
-            print(f"Successfully downloaded {title}")
-            db_conn.mark_track_downloaded(_id)
-            update_id3_tags(mp3_path, rank, artist, song_title)
-            move_newly_downloaded(mp3_path, dest_path)
-        else:
-            print(f"Failed to download {title}")
-
-
-def move_newly_downloaded(mp3_path, dest_dir):
-    pass
-
-
-def update_id3_tags(mp3_path, rank=None, artist=None, song_title=None):
-    pass
-
-
-def download_youtube_track(url):
-    # Setup client
-    class MyLogger(object):
-        def debug(self, msg):
-            pass
-
-        def warning(self, msg):
-            pass
-
-        def error(self, msg):
-            print(msg)
-
-    def my_hook(d):
-        if d['status'] == 'finished':
-            print('Done downloading, now converting ...')
-
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-        'logger': MyLogger(),
-        'progress_hooks': [my_hook],
-    }
-
-    # Attempt to download and extract audio for youtube links
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        try:
-            ydl.download([url])
-            return True
-        except Exception:
-            print(f"Failed to download {url}")
-            return False
-
-
 def main():
+
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('-s', '--subreddit', required=True, help='The subreddit you want to scan')
+    arg_parser.add_argument('-d', '--dest', help='The path you want to save downloaded files to')
+    arg_parser.add_argument('--scan-only', dest='scan_only', action='store_true', default=False,
+                            help="Don't download new tracks only scan and update the database")
+    arg_parser.add_argument('--download-only', dest='download_only', action='store_true', default=False,
+                            help="Don't scan for new tracks only fetch undownloaded content")
+    arg_parser.add_argument('-l', '--list', action='store_true', default=False,
+                            help="List the current contents of the database cache and exit")
+
+    args = arg_parser.parse_args()
+
     sql = sqliteHelper()
-    r = Redditor()
+    if args.list:
+        sql.display_content_table()
+        sys.exit()
 
-    # Aggregate channel content
-    house = r.reddit.subreddit("house")
+    reddit = Redditor(sql)
+    youtube = YoutubeDL(sql)
 
-    # Backport using the weekly aggregate postings
-    # ordered_tracks = get_r_house_tracks_from_weekly(house)
-    new_tracks = get_latest(sql, house)
-    sql.update_database(new_tracks)
-    fetch_undownloaded(sql)
+    # Update our database with latest youtube content
+    if not args.download_only:
+        reddit.update_cache(args.subreddit)
+
+    # Collect youtube videos, extract audio, and move created mp3s to the requested destination path
+    if not args.scan_only:
+        youtube.fetch_undownloaded(args.dest)
+
+
+if __name__ == "__main__":
+    main()
