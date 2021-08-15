@@ -15,9 +15,11 @@ Configuration
 
 * Install requirements:
 - Python3 Interpreter should be installed on your system
-```pip3 install pip-tools```
-```pip-compile requirements.in```
-```pip3 install -r requirements.txt```
+```
+pip3 install pip-tools
+pip-compile requirements.in
+pip3 install -r requirements.txt
+```
 
 * [Create a reddit application for your user](https://www.reddit.com/prefs/apps/)
  - Scroll to the bottom of the page and click "are you a developer? create an app..."
