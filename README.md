@@ -8,8 +8,7 @@ Features of this software include:
  * Check if the submission is for a new track and aggregate it's score
  * Weed out negatively scored content 
  * Automatically download new tracks from youtube
- * Update the track metadata to include community score
- * Generate a youtube playlist
+
 
 Configuration
 =============
