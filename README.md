@@ -12,21 +12,27 @@ Features of this software include:
 
 Configuration
 =============
-
+> **Must have python3 installed**
 * Install requirements:
-- Python3 Interpreter should be installed on your system
+
 ```
 pip3 install pip-tools
 pip-compile requirements.in
 pip3 install -r requirements.txt
 ```
 
+---
+
+**Setup a reddit application to use the reddit API**
 * [Create a reddit application for your user](https://www.reddit.com/prefs/apps/)
- - Scroll to the bottom of the page and click "are you a developer? create an app..."
+  - Scroll to the bottom of the page and click "are you a developer? create an app..."
+  - Fill out the form for your new app
+  - Use the data from the created app for your `praw.ini` file
 
+---
 
-* Setup praw.ini
- - create a file called praw.ini in the root directory using the following template:
+**Setup praw.ini**
+ - create a file called `praw.ini` in this directory using the following template:
 ```buildoutcfg
 [DEFAULT]
 # A boolean to indicate whether or not to check for package updates.
@@ -61,3 +67,23 @@ client_secret=<clientSecret>
 password=<the password for the user the reddit app was created with>
 username=<the username your reddit app was created with>
 ```
+
+---
+
+Example of how to use this code
+===============================
+```
+usage: reddit_selector.py [-h] -s SUBREDDIT [-d DEST] [--scan-only] [--download-only] [-l]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SUBREDDIT, --subreddit SUBREDDIT
+                        The subreddit you want to scan
+  -d DEST, --dest DEST  The path you want to save downloaded files to
+  --scan-only           Don't download new tracks only scan and update the database
+  --download-only       Don't scan for new tracks only fetch undownloaded content
+  -l, --list            List the current contents of the database cache and exit
+```
+
+* Check for any new submissions found on `/r/house` and download identified youtube content
+> ./reddit_selector.py --subreddit=house --dest ~/Music/reddit_selections
