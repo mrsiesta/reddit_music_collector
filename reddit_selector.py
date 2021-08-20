@@ -19,6 +19,8 @@ def main():
                             help="Don't download new tracks only scan and update the database")
     arg_parser.add_argument('--download-only', dest='download_only', action='store_true', default=False,
                             help="Don't scan for new tracks only fetch undownloaded content")
+    arg_parser.add_argument('-m', '--del-failed', dest='del_failed', action='store_true', default=False,
+                            help="Mark tracks that fail to download as downloaded so we no longer try to download them")
     arg_parser.add_argument('-l', '--list', action='store_true', default=False,
                             help="List the current contents of the database cache and exit")
 
@@ -38,7 +40,7 @@ def main():
 
     # Collect youtube videos, extract audio, and move created mp3s to the requested destination path
     if not args.scan_only:
-        youtube.fetch_undownloaded(args.dest)
+        youtube.fetch_undownloaded(args.dest, mark_failed_downloaded=args.del_failed)
 
 
 if __name__ == "__main__":

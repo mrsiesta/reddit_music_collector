@@ -19,7 +19,7 @@ class YoutubeDL:
         signal.signal(signal.SIGALRM, timeout_handler)
         self.db_conn = db_conn
 
-    def fetch_undownloaded(self, dest_path="~/Music/reddit"):
+    def fetch_undownloaded(self, dest_path="~/Music/reddit", mark_failed_downloaded=False):
         data = self.db_conn.fetch_undownloaded()
         print(f"Found {len(data)} tracks that need to be downloaded!\n")
         for row in data:
@@ -34,16 +34,18 @@ class YoutubeDL:
             try:
                 youtube_data = self.download_and_extract_audio(url)
 
-                self.db_conn.mark_track_downloaded(_id)
                 if not youtube_data:
+                    if mark_failed_downloaded:
+                        self.db_conn.mark_track_downloaded(_id)
                     print(f"Failed to download [{title}]")
                     print('-' * 80 + '\n')
                     continue
 
+                self.db_conn.mark_track_downloaded(_id)
                 # Anything over 15 minutes is likely not a single track, discard anything longer than 15 minutes
                 track_length = youtube_data.get('duration', 0)
                 mp3_path = self.search_log_data_for_mp3_path()
-                if track_length > 900 or track_length < 120:
+                if not 120 < track_length < 900:
                     print(f"Track duration [{track_length}] is outside of allowed duration, deleting file [{mp3_path}]")
                     Path(mp3_path).unlink(missing_ok=True)
                     print('-' * 80 + '\n')
@@ -135,7 +137,7 @@ class YoutubeDL:
                 result = ydl.extract_info(url)
                 signal.alarm(0)
                 return result
-            except Exception:
-                print(f"Failed to download {url}")
+            except Exception as e:
+                print(f"Failed to download {url}\nException: {e}")
                 signal.alarm(0)
                 return False
